@@ -41,3 +41,16 @@ class TestDecreaseStock:
 
         repo.get_by_sku.assert_not_called()
         repo.save_stock.assert_not_called()
+
+    @pytest.mark.parametrize("invalid_quantity", [True, False, 2.5, "3", None])
+    def test_rejects_non_integer_quantity_without_touching_repository(
+        self, invalid_quantity
+    ):
+        repo = Mock()
+        service = InventoryService(repository=repo)
+
+        with pytest.raises(InvalidQuantityError):
+            service.decrease_stock("LAP-01", invalid_quantity)
+
+        repo.get_by_sku.assert_not_called()
+        repo.save_stock.assert_not_called()

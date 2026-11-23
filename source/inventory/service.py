@@ -22,5 +22,6 @@ class InventoryService:
         return new_stock
 
     def _validate_positive_quantity(self, quantity: int) -> None:
-        if quantity <= 0:
+        # En Python bool es subclase de int, por eso se descarta explícitamente
+        if not isinstance(quantity, int) or isinstance(quantity, bool) or quantity <= 0:
             raise InvalidQuantityError("La cantidad debe ser un entero positivo.")
