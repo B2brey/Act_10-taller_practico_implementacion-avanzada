@@ -2,6 +2,13 @@ from unittest.mock import Mock
 
 import pytest
 
+from source.inventory.exceptions import (
+    ExternalDependencyError,
+    InsufficientStockError,
+    InvalidQuantityError,
+    InventoryError,
+    ProductNotFoundError,
+)
 from source.inventory.models import Product
 from source.inventory.service import InventoryService
 
@@ -21,3 +28,16 @@ class TestDecreaseStock:
         # Mock: verifica las llamadas exactas a la dependencia externa
         repo.get_by_sku.assert_called_once_with("LAP-01")
         repo.save_stock.assert_called_once_with("LAP-01", 7)
+
+    @pytest.mark.parametrize("invalid_quantity", [0, -1, -5])
+    def test_rejects_non_positive_quantity_without_touching_repository(
+        self, invalid_quantity
+    ):
+        repo = Mock()
+        service = InventoryService(repository=repo)
+
+        with pytest.raises(InvalidQuantityError):
+            service.decrease_stock("LAP-01", invalid_quantity)
+
+        repo.get_by_sku.assert_not_called()
+        repo.save_stock.assert_not_called()
