@@ -15,36 +15,8 @@ class InventoryService:
         self._repository = repository
 
     def decrease_stock(self, sku: str, quantity: int) -> int:
-        self._validate_positive_quantity(quantity)
-        product = self._get_product_or_raise(sku)
-        self._ensure_sufficient_stock(product, quantity)
-
+        # Obtiene el producto, calcula el nuevo stock y lo guarda en el repositorio
+        product = self._repository.get_by_sku(sku)
         new_stock = product.stock - quantity
-        self._persist_stock(sku, new_stock)
+        self._repository.save_stock(sku, new_stock)
         return new_stock
-
-    def _validate_positive_quantity(self, quantity: int) -> None:
-        # En Python bool es subclase de int, por eso se descarta explícitamente
-        if not isinstance(quantity, int) or isinstance(quantity, bool) or quantity <= 0:
-            raise InvalidQuantityError("La cantidad debe ser un entero positivo.")
-
-    def _get_product_or_raise(self, sku: str) -> Product:
-        try:
-            product = self._repository.get_by_sku(sku)
-        except Exception as exc:
-            raise ExternalDependencyError("Error al consultar el repositorio.") from exc
-
-        if product is None:
-            raise ProductNotFoundError(f"Producto '{sku}' no encontrado.")
-
-        return product
-
-    def _ensure_sufficient_stock(self, product: Product, quantity: int) -> None:
-        if product.stock < quantity:
-            raise InsufficientStockError("Stock insuficiente para descontar.")
-
-    def _persist_stock(self, sku: str, new_stock: int) -> None:
-        try:
-            self._repository.save_stock(sku, new_stock)
-        except Exception as exc:
-            raise ExternalDependencyError("Error al guardar el stock.") from exc
