@@ -23,6 +23,13 @@ class InventoryService:
         self._persist_stock(sku, new_stock)
         return new_stock
 
+    def increase_stock(self, sku: str, quantity: int) -> int:
+        # Obtiene el producto, calcula el nuevo stock y lo guarda en el repositorio
+        product = self._repository.get_by_sku(sku)
+        new_stock = product.stock + quantity
+        self._repository.save_stock(sku, new_stock)
+        return new_stock
+
     def _ensure_sufficient_stock(self, product: Product, quantity: int) -> None:
         if product.stock < quantity:
             raise InsufficientStockError("Stock insuficiente para descontar.")
