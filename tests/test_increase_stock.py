@@ -52,3 +52,13 @@ class TestDecreaseStock:
             service.increase_stock("UNKNOWN-SKU", 1)
 
         repo.save_stock.assert_not_called()
+
+    def test_wraps_save_failure_in_domain_error(self):
+        repo = Mock()
+        repo.get_by_sku.return_value = Product(sku="LAP-01", name="Laptop", stock=10)
+        repo.save_stock.side_effect = ConnectionError("Fallo al escribir en la BD")
+
+        service = InventoryService(repository=repo)
+
+        with pytest.raises(ExternalDependencyError):
+            service.increase_stock("LAP-01", 5)

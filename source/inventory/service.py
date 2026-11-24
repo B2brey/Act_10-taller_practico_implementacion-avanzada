@@ -26,8 +26,9 @@ class InventoryService:
     def increase_stock(self, sku: str, quantity: int) -> int:
         self._validate_positive_quantity(quantity)
         product = self._get_product_or_raise(sku)
+
         new_stock = product.stock + quantity
-        self._repository.save_stock(sku, new_stock)
+        self._persist_stock(sku, new_stock)
         return new_stock
 
     def _ensure_sufficient_stock(self, product: Product, quantity: int) -> None:
