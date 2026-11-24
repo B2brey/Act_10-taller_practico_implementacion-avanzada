@@ -16,10 +16,22 @@ class InventoryService:
 
     def decrease_stock(self, sku: str, quantity: int) -> int:
         self._validate_positive_quantity(quantity)
-        product = self._repository.get_by_sku(sku)
+        product = self._get_product_or_raise(sku)
+        self._ensure_sufficient_stock(product, quantity)
+
         new_stock = product.stock - quantity
         self._repository.save_stock(sku, new_stock)
         return new_stock
+
+    def _ensure_sufficient_stock(self, product: Product, quantity: int) -> None:
+        if product.stock < quantity:
+            raise InsufficientStockError("Stock insuficiente para descontar.")
+
+    def _get_product_or_raise(self, sku: str) -> Product:
+        product = self._repository.get_by_sku(sku)
+        if product is None:
+            raise ProductNotFoundError(f"Producto '{sku}' no encontrado.")
+        return product
 
     def _validate_positive_quantity(self, quantity: int) -> None:
         # En Python bool es subclase de int, por eso se descarta explícitamente

@@ -54,3 +54,25 @@ class TestDecreaseStock:
 
         repo.get_by_sku.assert_not_called()
         repo.save_stock.assert_not_called()
+
+    def test_raises_error_when_product_does_not_exist(self):
+        repo = Mock()
+        repo.get_by_sku.return_value = None
+
+        service = InventoryService(repository=repo)
+
+        with pytest.raises(ProductNotFoundError):
+            service.decrease_stock("UNKNOWN-SKU", 1)
+
+        repo.save_stock.assert_not_called()
+
+    def test_raises_error_when_stock_is_insufficient(self):
+        repo = Mock()
+        repo.get_by_sku.return_value = Product(sku="MOU-02", name="Mouse", stock=2)
+
+        service = InventoryService(repository=repo)
+
+        with pytest.raises(InsufficientStockError):
+            service.decrease_stock("MOU-02", 5)
+
+        repo.save_stock.assert_not_called()
