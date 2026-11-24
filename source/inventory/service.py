@@ -20,7 +20,7 @@ class InventoryService:
         self._ensure_sufficient_stock(product, quantity)
 
         new_stock = product.stock - quantity
-        self._repository.save_stock(sku, new_stock)
+        self._persist_stock(sku, new_stock)
         return new_stock
 
     def _ensure_sufficient_stock(self, product: Product, quantity: int) -> None:
@@ -41,3 +41,9 @@ class InventoryService:
         # En Python bool es subclase de int, por eso se descarta explícitamente
         if not isinstance(quantity, int) or isinstance(quantity, bool) or quantity <= 0:
             raise InvalidQuantityError("La cantidad debe ser un entero positivo.")
+
+    def _persist_stock(self, sku: str, new_stock: int) -> None:
+        try:
+            self._repository.save_stock(sku, new_stock)
+        except Exception as exc:
+            raise ExternalDependencyError("Error al guardar el stock.") from exc
