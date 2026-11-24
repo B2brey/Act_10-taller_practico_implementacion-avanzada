@@ -28,7 +28,11 @@ class InventoryService:
             raise InsufficientStockError("Stock insuficiente para descontar.")
 
     def _get_product_or_raise(self, sku: str) -> Product:
-        product = self._repository.get_by_sku(sku)
+        try:
+            product = self._repository.get_by_sku(sku)
+        except Exception as exc:
+            raise ExternalDependencyError("Error al consultar el repositorio.") from exc
+
         if product is None:
             raise ProductNotFoundError(f"Producto '{sku}' no encontrado.")
         return product

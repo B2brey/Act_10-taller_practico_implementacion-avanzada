@@ -76,3 +76,12 @@ class TestDecreaseStock:
             service.decrease_stock("MOU-02", 5)
 
         repo.save_stock.assert_not_called()
+
+    def test_wraps_repository_failure_in_domain_error(self):
+        repo = Mock()
+        repo.get_by_sku.side_effect = ConnectionError("Fallo de conexión a la BD")
+
+        service = InventoryService(repository=repo)
+
+        with pytest.raises(ExternalDependencyError):
+            service.decrease_stock("LAP-01", 1)
