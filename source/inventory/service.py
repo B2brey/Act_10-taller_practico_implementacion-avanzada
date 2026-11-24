@@ -24,7 +24,7 @@ class InventoryService:
         return new_stock
 
     def increase_stock(self, sku: str, quantity: int) -> int:
-        # Obtiene el producto, calcula el nuevo stock y lo guarda en el repositorio
+        self._validate_positive_quantity(quantity)
         product = self._repository.get_by_sku(sku)
         new_stock = product.stock + quantity
         self._repository.save_stock(sku, new_stock)

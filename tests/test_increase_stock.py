@@ -26,3 +26,18 @@ class TestDecreaseStock:
         # Mock: verifica las llamadas exactas a la dependencia externa
         repo.get_by_sku.assert_called_once_with("LAP-01")
         repo.save_stock.assert_called_once_with("LAP-01", 15)
+
+    @pytest.mark.parametrize(
+        "invalid_quantity", [0, -1, -5, True, False, 2.5, "3", None]
+    )
+    def test_rejects_invalid_quantity_without_touching_repository(
+        self, invalid_quantity
+    ):
+        repo = Mock()
+        service = InventoryService(repository=repo)
+
+        with pytest.raises(InvalidQuantityError):
+            service.increase_stock("LAP-01", invalid_quantity)
+
+        repo.get_by_sku.assert_not_called()
+        repo.save_stock.assert_not_called()
