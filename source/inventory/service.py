@@ -32,8 +32,11 @@ class InventoryService:
         return new_stock
 
     def _ensure_sufficient_stock(self, product: Product, quantity: int) -> None:
-        if product.stock < quantity:
-            raise InsufficientStockError("Stock insuficiente para descontar.")
+        # El stock resultante no puede quedar por debajo del mínimo del producto
+        if product.stock - quantity < product.min_stock:
+            raise InsufficientStockError(
+                f"Stock insuficiente: el mínimo permitido es {product.min_stock}."
+            )
 
     def _get_product_or_raise(self, sku: str) -> Product:
         try:
